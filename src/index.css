@@ -528,6 +528,26 @@ button {
 .primary-button--link {
   text-decoration: none;
 }
+.record-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.edit-button {
+  display: grid;
+  padding: 7px;
+  place-items: center;
+  color: #8792a4;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+}
+
+.edit-button:hover {
+  color: #2563eb;
+  background: #eaf1ff;
+}
 @media (max-width: 1100px) {
   .summary-grid {
     grid-template-columns: repeat(2, 1fr);

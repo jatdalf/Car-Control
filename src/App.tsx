@@ -3,7 +3,7 @@ import { MainLayout } from "./layouts/MainLayout";
 import { Dashboard } from "./pages/Dashboard/Dashboard";
 import { Combustible } from "./pages/Combustible/Combustible";
 import { Gastos } from "./pages/Gastos/Gastos";
-//x ximport { Mantenimiento } from "./pages/Mantenimiento/Mantenimiento";
+import { Mantenimiento } from "./pages/Mantenimiento/Mantenimiento";
 
 function App() {
   return (
@@ -14,7 +14,8 @@ function App() {
           <Route path="/resumen" element={<Dashboard />} />
           <Route path="/combustible" element={<Combustible />} />
           <Route path="/gastos" element={<Gastos />} />
-          {/* <Route path="/mantenimiento" element={<Mantenimiento />} /> */}
+          <Route path="/mantenimiento" element={<Mantenimiento />} />
+          <Route path="*" element={<Navigate to="/resumen" replace />} />
         </Route>
       </Routes>
     </BrowserRouter>
