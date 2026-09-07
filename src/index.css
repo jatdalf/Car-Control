@@ -548,6 +548,184 @@ button {
   color: #2563eb;
   background: #eaf1ff;
 }
+.consumption-average {
+  padding: 6px 10px;
+  color: #1d4ed8;
+  border-radius: 20px;
+  background: #eaf1ff;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.consumption-chart {
+  width: 100%;
+  height: 260px;
+  margin-top: 22px;
+}
+
+.text-link {
+  color: #2563eb;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.text-link:hover {
+  text-decoration: underline;
+}
+
+.recent-records {
+  margin-top: 18px;
+}
+
+.recent-record {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 14px 0;
+  border-bottom: 1px solid #edf0f4;
+}
+
+.recent-record__icon {
+  display: grid;
+  min-width: 38px;
+  height: 38px;
+  place-items: center;
+  color: #2563eb;
+  border-radius: 10px;
+  background: #eaf1ff;
+}
+
+.recent-record__content {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.recent-record__content strong {
+  font-size: 13px;
+}
+
+.recent-record__content span {
+  overflow: hidden;
+  color: #8993a2;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recent-record__amount {
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.maintenance-reminder {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin-top: 18px;
+  padding: 14px;
+  color: #7c3aed;
+  border-radius: 11px;
+  background: #f5f0ff;
+}
+
+.maintenance-reminder div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.maintenance-reminder strong {
+  font-size: 13px;
+}
+
+.maintenance-reminder span {
+  color: #84749e;
+  font-size: 11px;
+}
+.expense-summary {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 20px;
+  padding: 18px 22px;
+  color: white;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  box-shadow: 0 8px 24px rgb(37 99 235 / 18%);
+}
+
+.expense-summary__icon {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  place-items: center;
+  border-radius: 12px;
+  background: rgb(255 255 255 / 15%);
+}
+
+.expense-summary div:last-child {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.expense-summary span {
+  color: rgb(255 255 255 / 78%);
+  font-size: 12px;
+}
+
+.expense-summary strong {
+  font-size: 23px;
+}
+
+.expense-category {
+  display: inline-flex;
+  padding: 5px 9px;
+  color: #445064;
+  border-radius: 20px;
+  background: #edf1f6;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.expense-category--toll {
+  color: #1d4ed8;
+  background: #eaf1ff;
+}
+
+.expense-category--parking {
+  color: #7c3aed;
+  background: #f2eaff;
+}
+
+.expense-category--wash {
+  color: #0369a1;
+  background: #e5f6ff;
+}
+
+.expense-category--insurance {
+  color: #14783b;
+  background: #e9f8ee;
+}
+
+.expense-category--tax {
+  color: #a85c08;
+  background: #fff3df;
+}
+
+.expense-category--fine {
+  color: #b42318;
+  background: #fff0ee;
+}
+
+.expense-amount {
+  font-weight: 700;
+}
+
 @media (max-width: 1100px) {
   .summary-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -634,5 +812,14 @@ button {
   .form-actions button {
     justify-content: center;
     width: 100%;
+  }
+}
+@media (max-width: 520px) {
+  .recent-record__amount {
+    display: none;
+  }
+
+  .consumption-average {
+    display: none;
   }
 }
