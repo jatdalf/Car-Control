@@ -1,9 +1,11 @@
-import { CircleDollarSign, Fuel, Gauge, Route, Wrench, } from "lucide-react";
+import { CircleDollarSign, Fuel, Gauge, Route, Wrench, WalletCards,} from "lucide-react";
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
-import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, } from "recharts";
+import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis,} from "recharts";
 import { getFuelRecords } from "../../services/fuelStorage";
 import type { FuelRecord } from "../../types/fuel";
+import { getExpenseRecords } from "../../services/expenseStorage";
+import type { ExpenseCategory, ExpenseRecord,} from "../../types/expense";
 
 interface ConsumptionPoint {
   date: string;
@@ -12,6 +14,16 @@ interface ConsumptionPoint {
   liters: number;
   cost: number;
 }
+const expenseCategoryLabels: Record<ExpenseCategory, string> = {
+  toll: "Peajes",
+  parking: "Estacionamiento",
+  wash: "Lavados",
+  insurance: "Seguro",
+  tax: "Patente",
+  fine: "Multas",
+  accessories: "Accesorios",
+  other: "Otros",
+};
 
 const currencyFormatter = new Intl.NumberFormat("es-AR", {
   style: "currency",
@@ -63,10 +75,32 @@ function calculateConsumption(records: FuelRecord[]) {
 
 export function Dashboard() {
   const records = useMemo(() => getFuelRecords(), []);
+  const expenseRecords = useMemo(() => getExpenseRecords(), []);
 
   const {points: consumptionPoints, totalKilometers, totalMeasuredCost, averageConsumption,} 
     = useMemo(() => calculateConsumption(records), [records]);
-
+  const fullTankRecords = [...records].filter((record) => record.fullTank).sort((a, b) => a.date.localeCompare(b.date));
+    const measurementStartDate = fullTankRecords.length >= 2 ? fullTankRecords[0].date : null;
+    const measurementEndDate = fullTankRecords.length >= 2
+      ? fullTankRecords[fullTankRecords.length - 1].date : null;
+    const totalExpenses = expenseRecords.reduce((total, record) => total + record.amount, 0,);
+    const measuredExpenses = expenseRecords.filter((record) => {
+    if (!measurementStartDate || !measurementEndDate) {
+      return false;}
+  return (record.date >= measurementStartDate && record.date <= measurementEndDate);
+  });
+  const expensesByCategory = Object.entries(expenseRecords.reduce
+    <Partial<Record<ExpenseCategory, number>>>((totals, record) => {
+      totals[record.category] = (totals[record.category] ?? 0) + record.amount;
+      return totals;  
+    }, {}),).map(([category, amount]) => ({
+    category: category as ExpenseCategory, label: expenseCategoryLabels[category as ExpenseCategory], amount,
+  })).sort((a, b) => b.amount - a.amount);
+  const highestCategoryAmount = Math.max(0, ...expensesByCategory.map((item) => item.amount),);
+  const recentExpenses = [...expenseRecords].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 4);
+  const measuredExpenseCost = measuredExpenses.reduce((total, record) => total + record.amount, 0,);
+  const totalOperatingCost = totalMeasuredCost + measuredExpenseCost;
+  const totalOperatingCostPerKilometer = totalKilometers > 0 ? totalOperatingCost / totalKilometers : 0;
   const totalCost = records.reduce((total, record) => total + record.totalCost, 0,);
   const totalLiters = records.reduce((total, record) => total + record.liters, 0,);
   const averageLiterPrice = totalLiters > 0 ? totalCost / totalLiters : 0;
@@ -96,14 +130,35 @@ export function Dashboard() {
       icon: CircleDollarSign,
       color: "green",
     },
-    {
-      title: "Costo por kilómetro",
-      value: currencyFormatter.format(costPerKilometer),
-      detail: averageLiterPrice > 0 ? `${currencyFormatter.format(averageLiterPrice)} por litro`
-          : "Sin registros",
-      icon: Gauge,
-      color: "purple",
-    },
+   {
+  title: "Combustible por km",
+  value: currencyFormatter.format(costPerKilometer),
+  detail:
+    averageLiterPrice > 0
+      ? `${currencyFormatter.format(averageLiterPrice)} por litro`
+      : "Sin registros",
+  icon: Gauge,
+  color: "purple",
+},
+{
+  title: "Gastos adicionales",
+  value: currencyFormatter.format(totalExpenses),
+  detail: `${expenseRecords.length} gastos registrados`,
+  icon: WalletCards,
+  color: "red",
+},
+{
+  title: "Costo total por km",
+  value: currencyFormatter.format(totalOperatingCostPerKilometer),
+  detail:
+    totalKilometers > 0
+      ? `${currencyFormatter.format(
+          measuredExpenseCost,
+        )} en otros gastos del período`
+      : "Faltan períodos completos",
+  icon: CircleDollarSign,
+  color: "cyan",
+},
   ];
 
   return (
@@ -256,6 +311,96 @@ export function Dashboard() {
           </div>
         </article>
       </section>
+      <section className="expenses-dashboard-grid">
+  <article className="panel">
+    <div className="panel__header">
+      <div>
+        <h2>Gastos por categoría</h2>
+        <p>Distribución de los gastos adicionales</p>
+      </div>
+
+      <Link className="text-link" to="/gastos">
+        Ver todos
+      </Link>
+    </div>
+
+    {expensesByCategory.length === 0 ? (
+      <div className="empty-state empty-state--small">
+        <WalletCards size={38} />
+        <h3>Sin gastos registrados</h3>
+      </div>
+    ) : (
+      <div className="category-summary">
+        {expensesByCategory.map((item) => {
+          const percentage =
+            highestCategoryAmount > 0
+              ? (item.amount / highestCategoryAmount) * 100
+              : 0;
+
+          return (
+            <div className="category-row" key={item.category}>
+              <div className="category-row__header">
+                <span>{item.label}</span>
+                <strong>
+                  {currencyFormatter.format(item.amount)}
+                </strong>
+              </div>
+
+              <div className="category-row__track">
+                <div
+                  className="category-row__bar"
+                  style={{ width: `${percentage}%` }}
+                />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    )}
+  </article>
+
+  <article className="panel">
+    <div className="panel__header">
+      <div>
+        <h2>Últimos gastos</h2>
+        <p>Movimientos más recientes</p>
+      </div>
+    </div>
+
+    {recentExpenses.length === 0 ? (
+      <div className="empty-state empty-state--small">
+        <WalletCards size={38} />
+        <h3>Sin movimientos</h3>
+      </div>
+    ) : (
+      <div className="recent-records">
+        {recentExpenses.map((record: ExpenseRecord) => (
+          <div className="recent-record" key={record.id}>
+            <div className="recent-record__icon recent-record__icon--expense">
+              <WalletCards size={19} />
+            </div>
+
+            <div className="recent-record__content">
+              <strong>{record.description}</strong>
+
+              <span>
+                {expenseCategoryLabels[record.category]}
+                {" · "}
+                {new Date(
+                  `${record.date}T00:00:00`,
+                ).toLocaleDateString("es-AR")}
+              </span>
+            </div>
+
+            <strong className="recent-record__amount">
+              {currencyFormatter.format(record.amount)}
+            </strong>
+          </div>
+        ))}
+      </div>
+    )}
+  </article>
+</section>
     </div>
   );
 }
