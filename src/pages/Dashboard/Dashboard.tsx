@@ -1,4 +1,4 @@
-import { CircleDollarSign, Fuel, Gauge, Route, Wrench, WalletCards,} from "lucide-react";
+import { CalendarDays, CircleDollarSign, Fuel, Gauge, Route, Wrench, WalletCards,} from "lucide-react";
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis,} from "recharts";
@@ -6,6 +6,7 @@ import { getFuelRecords } from "../../services/fuelStorage";
 import type { FuelRecord } from "../../types/fuel";
 import { getExpenseRecords } from "../../services/expenseStorage";
 import type { ExpenseCategory, ExpenseRecord,} from "../../types/expense";
+import { getMaintenanceRecords } from "../../services/maintenanceStorage";
 
 interface ConsumptionPoint {
   date: string;
@@ -76,18 +77,20 @@ function calculateConsumption(records: FuelRecord[]) {
 export function Dashboard() {
   const records = useMemo(() => getFuelRecords(), []);
   const expenseRecords = useMemo(() => getExpenseRecords(), []);
+  const maintenanceRecords = useMemo(() => getMaintenanceRecords(), [],);
 
   const {points: consumptionPoints, totalKilometers, totalMeasuredCost, averageConsumption,} 
     = useMemo(() => calculateConsumption(records), [records]);
   const fullTankRecords = [...records].filter((record) => record.fullTank).sort((a, b) => a.date.localeCompare(b.date));
-    const measurementStartDate = fullTankRecords.length >= 2 ? fullTankRecords[0].date : null;
-    const measurementEndDate = fullTankRecords.length >= 2
-      ? fullTankRecords[fullTankRecords.length - 1].date : null;
-    const totalExpenses = expenseRecords.reduce((total, record) => total + record.amount, 0,);
-    const measuredExpenses = expenseRecords.filter((record) => {
+  const measurementStartDate = fullTankRecords.length >= 2 ? fullTankRecords[0].date : null;
+  const measurementEndDate = fullTankRecords.length >= 2
+    ? fullTankRecords[fullTankRecords.length - 1].date : null;
+  const totalExpenses = expenseRecords.reduce((total, record) => total + record.amount, 0,);
+  const measuredExpenses = expenseRecords.filter((record) => {
     if (!measurementStartDate || !measurementEndDate) {
-      return false;}
-  return (record.date >= measurementStartDate && record.date <= measurementEndDate);
+      return false;
+    }
+    return (record.date >= measurementStartDate && record.date <= measurementEndDate);
   });
   const expensesByCategory = Object.entries(expenseRecords.reduce
     <Partial<Record<ExpenseCategory, number>>>((totals, record) => {
@@ -106,6 +109,44 @@ export function Dashboard() {
   const averageLiterPrice = totalLiters > 0 ? totalCost / totalLiters : 0;
   const costPerKilometer = totalKilometers > 0 ? totalMeasuredCost / totalKilometers : 0;
   const recentRecords = [...records].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 4);
+  
+const totalMaintenanceCost = maintenanceRecords.reduce(
+  (total, record) => total + record.cost,
+  0,
+);
+
+const totalRegisteredCost =
+  totalCost + totalExpenses + totalMaintenanceCost;
+
+const registeredDates = [
+  ...records.map((record) => record.date),
+  ...expenseRecords.map((record) => record.date),
+  ...maintenanceRecords.map((record) => record.date),
+].sort((a, b) => a.localeCompare(b));
+
+const firstRecordDate =
+  registeredDates.length > 0
+    ? new Date(`${registeredDates[0]}T00:00:00`)
+    : null;
+
+const today = new Date();
+const millisecondsPerDay = 1000 * 60 * 60 * 24;
+
+const trackedDays = firstRecordDate
+  ? Math.max(
+      1,
+      Math.floor(
+        (today.getTime() - firstRecordDate.getTime()) /
+          millisecondsPerDay,
+      ) + 1,
+    )
+  : 0;
+
+const averageDailyCost =
+  trackedDays > 0
+    ? totalRegisteredCost / trackedDays
+    : 0;
+
   const summaryCards = [
     {
       title: "Kilómetros controlados",
@@ -114,23 +155,20 @@ export function Dashboard() {
           : "Faltan cargas completas",
       icon: Route,
       color: "blue",
-    },
-    {
+    },{
       title: "Consumo promedio",
       value: `${decimalFormatter.format(averageConsumption)} L/100 km`,
       detail: consumptionPoints.length > 0 ? "Promedio entre tanques completos"
           : "Se necesitan al menos 2 cargas",
       icon: Fuel,
       color: "orange",
-    },
-    {
+    },{
       title: "Total en combustible",
       value: currencyFormatter.format(totalCost),
       detail: `${decimalFormatter.format(totalLiters)} litros registrados`,
       icon: CircleDollarSign,
       color: "green",
-    },
-   {
+    },{
   title: "Combustible por km",
   value: currencyFormatter.format(costPerKilometer),
   detail:
@@ -139,15 +177,13 @@ export function Dashboard() {
       : "Sin registros",
   icon: Gauge,
   color: "purple",
-},
-{
+},{
   title: "Gastos adicionales",
   value: currencyFormatter.format(totalExpenses),
   detail: `${expenseRecords.length} gastos registrados`,
   icon: WalletCards,
   color: "red",
-},
-{
+},{
   title: "Costo total por km",
   value: currencyFormatter.format(totalOperatingCostPerKilometer),
   detail:
@@ -158,6 +194,12 @@ export function Dashboard() {
       : "Faltan períodos completos",
   icon: CircleDollarSign,
   color: "cyan",
+},{
+  title: "Costo promedio diario",
+  value: currencyFormatter.format(averageDailyCost),
+  detail: trackedDays > 0 ? `${trackedDays} días desde el primer registro` : "Sin registros",
+  icon: CalendarDays,
+  color: "yellow",
 },
   ];
 
