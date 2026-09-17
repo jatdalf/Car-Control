@@ -932,7 +932,105 @@ button {
   color: #ca8a04;
   background: #fef9c3;
 }
+.daily-cost-grid {
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) minmax(0, 2fr);
+  gap: 18px;
+  margin-top: 18px;
+}
 
+.daily-cost-card {
+  min-height: 100%;
+}
+
+.daily-cost-card > strong {
+  display: block;
+  margin-bottom: 7px;
+  font-size: 28px;
+}
+
+.monthly-cost-panel {
+  min-height: auto;
+}
+
+.monthly-cost-chart {
+  width: 100%;
+  height: 250px;
+  margin-top: 18px;
+}
+
+.monthly-cost-details {
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(210px, 1fr)
+  );
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.monthly-cost-detail {
+  padding: 15px;
+  border: 1px solid #e4e9f0;
+  border-radius: 12px;
+  background: #f8faff;
+}
+
+.monthly-cost-detail__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 13px;
+  text-transform: capitalize;
+}
+
+.monthly-cost-detail__header > span {
+  padding: 4px 7px;
+  color: #1d4ed8;
+  border-radius: 20px;
+  background: #e5edff;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.monthly-cost-detail dl {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+}
+
+.monthly-cost-detail dl div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.monthly-cost-detail dt {
+  color: #7c8798;
+  font-size: 11px;
+}
+
+.monthly-cost-detail dd {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.monthly-cost-detail small {
+  display: block;
+  margin-top: 12px;
+  color: #9aa3b1;
+  font-size: 10px;
+}
+
+@media (max-width: 900px) {
+  .daily-cost-grid {
+    grid-template-columns: 1fr;
+  }
+}
 @media (max-width: 1100px) {
   .summary-grid {
   grid-template-columns: repeat(2, 1fr);

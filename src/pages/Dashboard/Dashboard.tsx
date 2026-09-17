@@ -1,7 +1,8 @@
 import { CalendarDays, CircleDollarSign, Fuel, Gauge, Route, Wrench, WalletCards,} from "lucide-react";
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
-import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis,} from "recharts";
+import {Bar, BarChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis,}
+ from "recharts";
 import { getFuelRecords } from "../../services/fuelStorage";
 import type { FuelRecord } from "../../types/fuel";
 import { getExpenseRecords } from "../../services/expenseStorage";
@@ -30,6 +31,12 @@ const currencyFormatter = new Intl.NumberFormat("es-AR", {
   style: "currency",
   currency: "ARS",
   maximumFractionDigits: 0,
+});
+const currencyDecimalFormatter = new Intl.NumberFormat("es-AR", {
+  style: "currency",
+  currency: "ARS",
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
 });
 
 const decimalFormatter = new Intl.NumberFormat("es-AR", { minimumFractionDigits: 1, maximumFractionDigits: 2,});
@@ -129,7 +136,7 @@ const firstRecordDate =
     ? new Date(`${registeredDates[0]}T00:00:00`)
     : null;
 
-const today = new Date();
+const today = useMemo(() => new Date(), []);
 const millisecondsPerDay = 1000 * 60 * 60 * 24;
 
 const trackedDays = firstRecordDate
@@ -142,10 +149,45 @@ const trackedDays = firstRecordDate
     )
   : 0;
 
-const averageDailyCost =
-  trackedDays > 0
-    ? totalRegisteredCost / trackedDays
-    : 0;
+const averageDailyCost = trackedDays > 0 ? totalRegisteredCost / trackedDays : 0;
+const monthlyCostData = useMemo(() => {
+  const movements = [...records.map((record) => ({date: record.date, amount: record.totalCost,})),
+    ...expenseRecords.map((record) => ({date: record.date, amount: record.amount,})),
+    ...maintenanceRecords.map((record) => ({date: record.date, amount: record.cost,})),
+  ].filter((movement) => {
+    const movementDate = new Date(`${movement.date}T00:00:00`);
+    return movementDate <= today;
+    });
+  if (movements.length === 0) {
+    return [];
+  }
+  const totalsByMonth = movements.reduce<Record<string, number>>(
+    (totals, movement) => {
+      const monthKey = movement.date.slice(0, 7);
+      totals[monthKey] = (totals[monthKey] ?? 0) + movement.amount;
+      return totals;
+    }, {},
+  );
+  const currentYear = today.getFullYear();
+  const currentMonthNumber = today.getMonth() + 1;
+  const currentMonth = `${currentYear}-${String(currentMonthNumber,).padStart(2, "0")}`;
+
+  return Object.entries(totalsByMonth)
+    .sort(([monthA], [monthB]) => monthA.localeCompare(monthB)).map(([monthKey, total]) => {
+    const [year, month] = monthKey.split("-").map(Number);
+    const daysInMonth = new Date(year, month, 0).getDate();
+    const dailyAverage = total / daysInMonth;
+    const monthName = new Date(year, month - 1, 1,).toLocaleDateString("es-AR", 
+      {month: "short", year: "2-digit", });
+      return {
+        month: monthName.replace(".", ""),
+        total,
+        dailyAverage,
+        daysInMonth,
+        isCurrentMonth: monthKey === currentMonth,
+      };
+    });
+}, [records, expenseRecords, maintenanceRecords, today]);
 
   const summaryCards = [
     {
@@ -194,12 +236,6 @@ const averageDailyCost =
       : "Faltan períodos completos",
   icon: CircleDollarSign,
   color: "cyan",
-},{
-  title: "Costo promedio diario",
-  value: currencyFormatter.format(averageDailyCost),
-  detail: trackedDays > 0 ? `${trackedDays} días desde el primer registro` : "Sin registros",
-  icon: CalendarDays,
-  color: "yellow",
 },
   ];
 
@@ -229,6 +265,92 @@ const averageDailyCost =
             <span>{detail}</span>
           </article>
         ))}
+      </section>
+
+      <section className="daily-cost-grid">
+        <article className="summary-card daily-cost-card">
+          <div className="summary-card__icon summary-card__icon--yellow">
+            <CalendarDays size={23} />
+          </div>
+          <p>Costo promedio diario</p>
+          <strong>{currencyFormatter.format(averageDailyCost)}</strong>
+          <span>
+            {trackedDays > 0 ? `${trackedDays} días desde el primer registro` : "Sin registros"}
+          </span>
+        </article>
+
+        <article className="panel monthly-cost-panel">
+          <div className="panel__header">
+            <div>
+              <h2>Costo mensual</h2>
+              <p>Gastos registrados y promedio diario de cada mes</p>
+            </div>
+          </div>
+          {monthlyCostData.length === 0 ? (
+            <div className="empty-state empty-state--small">
+              <CalendarDays size={38} />
+              <h3>Sin información mensual</h3>
+              <p>Agregá movimientos para calcular una estimación.</p>
+            </div>
+          ) : (
+            <>
+              <div className="monthly-cost-chart">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={monthlyCostData}
+                    margin={{top: 20, right: 15, left: 15, bottom: 0, }}>
+                    <CartesianGrid strokeDasharray="4 4" stroke="#e8edf4" vertical={false}/>
+                    <XAxis dataKey="month" tickLine={false} axisLine={false}
+                      tick={{ fill: "#7c8798", fontSize: 12, }} />
+                    <YAxis tickLine={false} axisLine={false} width={75}
+                      tick={{ fill: "#7c8798", fontSize: 11, }}
+                      tickFormatter={(value) => currencyFormatter.format(Number(value)) } />
+                    <Tooltip
+                      formatter={(value) => currencyDecimalFormatter.format(Number(value))}
+                      contentStyle={{
+                        border: "1px solid #e2e7ee",
+                        borderRadius: "10px",
+                        boxShadow: "0 8px 25px rgb(15 23 42 / 10%)",
+                      }}
+                    />
+
+                    <Bar dataKey="total" name="Registrado" fill="#94a3b8" radius={[6, 6, 0, 0]}/>
+                    <Bar
+                      dataKey="total"
+                      name="Total registrado"
+                      fill="#2563eb"
+                      radius={[6, 6, 0, 0]}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+
+              <div className="monthly-cost-details">
+                {monthlyCostData.map((month) => (
+                  <div className="monthly-cost-detail" key={month.month}>
+                    <div className="monthly-cost-detail__header">
+                      <strong>{month.month}</strong>
+                      {month.isCurrentMonth && (<span>Mes actual</span>)}
+                    </div>
+
+                    <dl>
+                      <div>
+                        <dt>Total registrado</dt>
+                        <dd>{currencyFormatter.format(month.total)}</dd>
+                      </div>
+
+                      <div>
+                        <dt>Promedio diario</dt>
+                        <dd>{currencyDecimalFormatter.format(month.dailyAverage,)}</dd>
+                      </div>
+                    </dl>
+                    <small>Promedio calculado sobre {month.daysInMonth} días</small>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </article>
       </section>
 
       <section className="dashboard-grid">
