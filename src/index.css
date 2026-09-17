@@ -1026,6 +1026,11 @@ button {
   font-size: 10px;
 }
 
+.developed{
+  color: rgb(104, 98, 98);
+  text-align: center;
+}
+
 @media (max-width: 900px) {
   .daily-cost-grid {
     grid-template-columns: 1fr;

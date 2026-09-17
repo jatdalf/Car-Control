@@ -84,6 +84,8 @@ export function MainLayout() {
           <Settings size={20} />
           <span>Configuración</span>
         </button>
+
+        <p><small className="developed">Desarrollado por Jorge Toso ®</small></p>
       </aside>
 
       {menuOpen && (
