@@ -1139,3 +1139,27 @@ button {
     display: none;
   }
 }
+.page-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.page-header__actions .secondary-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+@media (max-width: 720px) {
+  .page-header__actions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .page-header__actions a,
+  .page-header__actions button {
+    width: 100%;
+  }
+}

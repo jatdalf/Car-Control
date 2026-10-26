@@ -1,4 +1,4 @@
-import { CalendarDays, CircleDollarSign, Fuel, Gauge, Route, Wrench, WalletCards,} from "lucide-react";
+import { CalendarDays, CircleDollarSign, Fuel, Gauge, Route, Wrench, WalletCards, Download,} from "lucide-react";
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import {Bar, BarChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis,}
@@ -8,6 +8,7 @@ import type { FuelRecord } from "../../types/fuel";
 import { getExpenseRecords } from "../../services/expenseStorage";
 import type { ExpenseCategory, ExpenseRecord,} from "../../types/expense";
 import { getMaintenanceRecords } from "../../services/maintenanceStorage";
+import { exportLocalBackup } from "../../utils/localBackup";
 
 interface ConsumptionPoint {
   date: string;
@@ -248,9 +249,17 @@ const monthlyCostData = useMemo(() => {
           <p>Controlá el consumo, los kilómetros y todos tus gastos.</p>
         </div>
 
-        <Link className="primary-button primary-button--link" to="/combustible">
-          <Fuel size={19} /> Nueva carga
-        </Link>
+        <div className="page-header__actions">
+          <button type="button" className="secondary-button" onClick={exportLocalBackup}>
+            <Download size={18} />
+            Descargar respaldo
+          </button>
+
+          <Link className="primary-button primary-button--link" to="/combustible">
+            <Fuel size={19} />
+            Nueva carga
+          </Link>
+        </div>
       </section>
 
       <section className="summary-grid">
