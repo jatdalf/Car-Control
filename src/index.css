@@ -1163,3 +1163,138 @@ button {
     width: 100%;
   }
 }
+.auth-page {
+  display: grid;
+  min-height: 100vh;
+  padding: 24px;
+  place-items: center;
+  background:
+    radial-gradient(circle at top left, #dbeafe, transparent 42%),
+    #f5f7fb;
+}
+
+.auth-card {
+  width: min(100%, 440px);
+  padding: 32px;
+  border: 1px solid #e3e8ef;
+  border-radius: 20px;
+  background: white;
+  box-shadow: 0 20px 55px rgb(15 23 42 / 10%);
+}
+
+.auth-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 28px;
+}
+
+.auth-brand__icon {
+  display: grid;
+  min-width: 54px;
+  height: 54px;
+  place-items: center;
+  color: white;
+  border-radius: 15px;
+  background: #2563eb;
+}
+
+.auth-brand h1 {
+  margin: 0;
+  font-size: 25px;
+}
+
+.auth-brand p {
+  margin: 5px 0 0;
+  color: #7c8798;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.auth-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  margin-bottom: 24px;
+  padding: 4px;
+  border-radius: 11px;
+  background: #f0f3f7;
+}
+
+.auth-tabs button {
+  padding: 10px;
+  color: #748094;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.auth-tabs button.active {
+  color: #1d4ed8;
+  background: white;
+  box-shadow: 0 2px 8px rgb(15 23 42 / 8%);
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 17px;
+}
+
+.auth-submit {
+  justify-content: center;
+  width: 100%;
+  margin-top: 5px;
+}
+
+.auth-submit:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.form-success {
+  margin: 0;
+  padding: 11px 14px;
+  color: #14783b;
+  border-radius: 8px;
+  background: #e9f8ee;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.auth-loading {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  color: #64748b;
+}
+
+.auth-spinner {
+  width: 34px;
+  height: 34px;
+  border: 3px solid #dbe5f4;
+  border-top-color: #2563eb;
+  border-radius: 50%;
+  animation: auth-spin 700ms linear infinite;
+}
+
+@keyframes auth-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 520px) {
+  .auth-page {
+    padding: 15px;
+  }
+
+  .auth-card {
+    padding: 24px 20px;
+  }
+}
