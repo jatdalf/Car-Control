@@ -2,12 +2,13 @@ import { Gauge, LogIn, UserPlus } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
+import { Eye, EyeOff } from "lucide-react";
 
 type AuthMode = "login" | "register";
 
 export function AuthPage() {
   const { user, loading, signIn, signUp } = useAuth();
-
+  const [showPassword, setShowPassword] = useState(false);
   const [mode, setMode] = useState<AuthMode>("login");
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -146,19 +147,24 @@ export function AuthPage() {
           <label className="form-field">
             <span>Contraseña</span>
 
-            <input
-              type="password"
-              autoComplete={
-                mode === "register"
-                  ? "new-password"
-                  : "current-password"
-              }
-              placeholder="Mínimo 6 caracteres"
-              value={password}
-              onChange={(event) =>
-                setPassword(event.target.value)
-              }
-            />
+<div className="password-field">
+  <input
+    type={showPassword ? "text" : "password"}
+    value={password}
+    onChange={(event) => setPassword(event.target.value)}
+    required
+    autoComplete={mode === "login" ? "current-password" : "new-password"}
+  />
+
+  <button
+    type="button"
+    className="password-toggle"
+    onClick={() => setShowPassword((current) => !current)}
+    aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+  >
+    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+  </button>
+</div>
           </label>
 
           {error && <p className="form-error">{error}</p>}
